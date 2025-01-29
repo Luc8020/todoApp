@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Todo App</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f2f5;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        
+        .container {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            width: 90%;
+            max-width: 500px;
+        }
+
+        .auth-form {
+            display: none;
+        }
+
+        .auth-form.active, 
+        #protected-content.active {
+            display: block;
+        }
+
+        .auth-links {
+            margin-top: 1rem;
+            text-align: center;
+        }
+
+        .auth-links a {
+            color: #646cff;
+            cursor: pointer;
+            text-decoration: underline;
+        }
+
+        input {
+            width: 100%;
+            padding: 10px;
+            margin: 8px 0;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            background-color: #646cff;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 0;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #4c51cc;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .header button {
+            width: auto;
+            padding: 8px 16px;
+            background-color: #ff4444;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        #todoList {
+            list-style: none;
+            padding: 0;
+        }
+
+        .todo-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            margin: 10px 0;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            border: 1px solid #eee;
+        }
+
+        .todo-content h3 {
+            margin: 0 0 5px 0;
+            font-size: 18px;
+        }
+
+        .todo-content p {
+            margin: 0;
+            color: #666;
+            font-size: 14px;
+        }
+
+        .delete-btn {
+            width: auto;
+            padding: 6px 12px;
+            background-color: #ff4444;
+            margin: 0;
+        }
+
+        .delete-btn:hover {
+            background-color: #cc0000;
+        }
+
+        #todoForm {
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="auth-form active" id="register-form">
+            <h2>Register</h2>
+            <form id="registerForm">
+                <input type="text" id="username" placeholder="Username" required>
+                <input type="email" id="email" placeholder="Email" required>
+                <input type="password" id="password" placeholder="Password" required>
+                <button type="submit">Create Account</button>
+            </form>
+            <div class="auth-links">
+                Already have an account? <a onclick="toggleForms('login-form')">Login here</a>
+            </div>
+        </div>
+
+        <div class="auth-form" id="login-form">
+            <h2>Login</h2>
+            <form id="loginForm">
+                <input type="email" id="loginEmail" placeholder="Email" required>
+                <input type="password" id="loginPassword" placeholder="Password" required>
+                <button type="submit">Sign In</button>
+            </form>
+            <div class="auth-links">
+                Don't have an account? <a onclick="toggleForms('register-form')">Register here</a>
+            </div>
+        </div>
+
+        <div class="hidden" id="protected-content">
+            <div class="header">
+                <h2>Your ToDos</h2>
+                <button onclick="logout()">Logout</button>
+            </div>
+            <div id="todo-section">
+                <form id="todoForm">
+                    <input type="text" id="todoInput" placeholder="Title" required>
+                    <input type="text" id="todoDescription" placeholder="Description">
+                    <button type="submit">Add Todo</button>
+                </form>
+                <ul id="todoList"></ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:3000';
+        let authToken = localStorage.getItem('authToken');
+
+        checkAuth();
+
+        document.getElementById('registerForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const form = e.target;
+            const userData = {
+                username: form.username.value,
+                email: form.email.value,
+                password: form.password.value
+            };
+
+            try {
+                const response = await fetch(`${API_BASE}/auth/register`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(userData)
+                });
+
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.error || 'Registration failed');
+                
+                alert('Registration successful! Please login.');
+                form.reset();
+                toggleForms('login-form');
+            } catch (error) {
+                alert(error.message);
+            }
+        });
+
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const form = e.target;
+            const credentials = {
+                email: form.loginEmail.value,
+                password: form.loginPassword.value
+            };
+
+            try {
+                const response = await fetch(`${API_BASE}/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(credentials)
+                });
+
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.error || 'Login failed');
+
+                authToken = data.token;
+                localStorage.setItem('authToken', authToken);
+                form.reset();
+                checkAuth();
+                loadTodos();
+            } catch (error) {
+                alert(error.message);
+            }
+        });
+
+        document.getElementById('todoForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const titleInput = document.getElementById('todoInput');
+            const descriptionInput = document.getElementById('todoDescription');
+
+            if (!titleInput.value) return;
+
+            try {
+                const response = await fetch(`${API_BASE}/todo`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authToken}`
+                    },
+                    body: JSON.stringify({ 
+                        title: titleInput.value, 
+                        description: descriptionInput.value 
+                    })
+                });
+
+                if (!response.ok) throw new Error('Failed to create todo');
+                
+                titleInput.value = '';
+                descriptionInput.value = '';
+                loadTodos();
+            } catch (error) {
+                alert(error.message);
+            }
+        });
+
+        async function loadTodos() {
+            try {
+                const response = await fetch(`${API_BASE}/todo`, {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+                
+                if (!response.ok) throw new Error('Failed to load todos');
+                
+                const todos = await response.json();
+                const todoList = document.getElementById('todoList');
+                todoList.innerHTML = '';
+                
+                todos.todos.forEach(todo => {
+                    const li = document.createElement('li');
+                    li.innerHTML = `
+                        <div class="todo-item">
+                            <div class="todo-content">
+                                <h3>${todo.title}</h3>
+                                ${todo.description ? `<p>${todo.description}</p>` : ''}
+                            </div>
+                            <button onclick="deleteTodo('${todo.id}')" class="delete-btn">Delete</button>
+                        </div>
+                    `;
+                    todoList.appendChild(li);
+                });
+            } catch (error) {
+                alert(error.message);
+            }
+        }
+
+        async function deleteTodo(todoId) {
+            try {
+                const response = await fetch(`${API_BASE}/todo/${todoId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+
+                if (!response.ok) throw new Error('Failed to delete todo');
+                loadTodos();
+            } catch (error) {
+                alert(error.message);
+            }
+        }
+
+        function checkAuth() {
+            if (authToken) {
+                document.querySelectorAll('.auth-form').forEach(form => form.classList.remove('active'));
+                document.getElementById('protected-content').classList.add('active');
+                loadTodos();
+            } else {
+                document.getElementById('protected-content').classList.remove('active');
+                toggleForms('login-form');
+            }
+        }
+
+        function toggleForms(formId) {
+            document.querySelectorAll('.auth-form').forEach(form => form.classList.remove('active'));
+            document.getElementById(formId).classList.add('active');
+        }
+
+        function logout() {
+            localStorage.removeItem('authToken');
+            authToken = null;
+            checkAuth();
+        }
+    </script>
+</body>
+</html>

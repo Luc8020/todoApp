@@ -1,0 +1,77 @@
+services:
+  todo-mysql:
+    image: mysql:8.0
+    container_name: todo-mysql
+    volumes:
+      - mysql-data:/var/lib/mysql
+    ports:
+      - "3306:3306"
+    restart: unless-stopped
+
+    environment:
+      MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
+      MYSQL_DATABASE: todo
+    networks:
+      - todo-network
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: todo-phpmyadmin
+    ports:
+      - 8080:80
+    depends_on:
+      - todo-mysql
+    volumes:
+      - /opt/docker/phpmyadmin/config.inc.php:/etc/phpmyadmin/config.user.inc.php
+    environment:
+      PMA_HOST: mysql
+      MYSQL_ROOT_PASSWORD: root
+    restart: unless-stopped
+    networks:
+      - todo-network
+
+  todo-backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+
+    container_name: todo-backend
+    ports:
+      - "3000:3000"
+    depends_on:
+      - todo-mysql
+
+    environment:
+      DB_HOST: todo-mysql
+      DB_PORT: 3306
+      DB_USER: root
+      DB_PASSWORD:
+      DB_NAME: todo
+      JWT_SECRET: 51ddc48f632c1e828cba524f3050ef2d837f5c3a4de5c15f585c93bc662a1e3eca8e59de08e0b354b36a87fde2789494c1f8ba8249945d5fbf3d9e4c72562070a7a4f63e8ad09c9682dd57f6dfd02299e2cf3d94427519f645a1613428327dae98543562ef65f9b467a2d40889d960247ddee857531dadb5baf60593cbbdac58cfa71983a154a6abcec7f7327fcb16848fb1a0dc44a43f128142b7b8f38370f32ee9e34cff6ac7531d4cbb3f0368deb4760473472d1015f5a12b5be909023edda6018e42329fd61cbb8b46b3dc6835ff9b667452946bfe42845083836268d99a6fe69e87f8a513d869e60abea00272407b49ba997120c05f49a675663bd8c199
+
+    restart: unless-stopped
+    networks:
+      - todo-network
+
+  todo-frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: todo-frontend
+    ports:
+      - "5173:5173"
+
+    depends_on:
+      - todo-backend
+    restart: unless-stopped
+    networks:
+      - todo-network
+
+
+volumes:
+  mysql-data:
+
+networks:
+  todo-network:
+    name: todo-network
+    driver: bridge
