@@ -8,6 +8,7 @@
         <form @submit.prevent="addTodo">
           <input v-model="newTodo.title" type="text" placeholder="Title" required>
           <input v-model="newTodo.description" type="text" placeholder="Description">
+          <input type="file" @change="newTodo.file = $event.target.files[0]">
           <button type="submit">Add Todo</button>
         </form>
         <ul id="todoList">
@@ -17,6 +18,7 @@
               <p style="word-wrap: break-word;">{{ todo.description }}</p>
             </div>
             <button @click="deleteTodo(todo.id)" class="delete-btn">Delete</button>
+            <button @click="downloadFiles(todo.id)" class="delete-btn">Download Files</button>
             <input type="checkbox" @change="changeTodoStatus(todo.id, !todo.completed)" :checked="todo.completed">
           </li>
         </ul>
@@ -37,13 +39,17 @@
   
   const addTodo = async () => {
     try {
+      const formdata = new FormData()
+      formdata.append('title', newTodo.value.title)
+      formdata.append('description', newTodo.value.description)
+      formdata.append('files', newTodo.value.file)
       const response = await fetch('http://localhost:3000/todo', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${localStorage.getItem('authToken')}`
         },
-        body: JSON.stringify(newTodo.value)
+        body: formdata
       })
   
       if (!response.ok) throw new Error('Failed to create todo')
@@ -67,6 +73,26 @@
   
       if (!response.ok) throw new Error('Failed to update todo status')
       loadTodos()
+    } catch (error) {
+      alert(error.message)
+    }
+  }
+
+  const downloadFiles = async (todoId) => {
+    try {
+      const response = await fetch(`http://localhost:3000/todo/${todoId}/files`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+        }
+      })
+  
+      if (!response.ok) throw new Error('Failed to download files')
+      const blob = await response.blob()
+      const url = window.URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = response
+      a.click()
     } catch (error) {
       alert(error.message)
     }
