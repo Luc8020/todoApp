@@ -8,7 +8,7 @@ export interface TodoInstance extends Model {
     description: string;
     completed: boolean;
     ownerId: string;
-    filepath: string;
+    filepaths: string[];
 }
 
 const Todo = sequelize.define<TodoInstance>('Todo', {
@@ -35,8 +35,8 @@ const Todo = sequelize.define<TodoInstance>('Todo', {
         allowNull: false
     },
 
-    filepath: {
-        type: DataTypes.STRING,
+    filepaths: {
+        type: DataTypes.ARRAY(DataTypes.STRING),
         allowNull: true
     }
 });

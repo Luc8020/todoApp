@@ -23,13 +23,19 @@ declare global {
 
 const todoController = {
     createTodo: async (req: Request, res: Response) => {
-        const { title, description} = req.body;
+        const { title, description } = req.body;
+        const files = req.files as Express.Multer.File[];
+        
         try {
+            const filepaths = files ? files.map(file => file.path) : [];
+            
             const todo = await todoService.createTodo({
                 title,
                 description,
-                ownerId: req.user?.id || ''
+                ownerId: req.user?.id || '',
+                filepaths
             });
+            
             res.status(201).json({ todo });
         } catch (error) {
             res.status(400).json({ error });
