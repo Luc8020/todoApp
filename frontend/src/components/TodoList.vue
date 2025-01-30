@@ -19,7 +19,7 @@
             </div>
             <button @click="deleteTodo(todo.id)" class="delete-btn">Delete</button>
             <button @click="downloadFiles(todo.id)" class="delete-btn">Download Files</button>
-            <input type="checkbox" @change="changeTodoStatus(todo.id, !todo.completed)" :checked="todo.completed">
+            <input class="checkbox" type="checkbox" @change="changeTodoStatus(todo.id, !todo.completed)" :checked="todo.completed">
           </li>
         </ul>
       </div>
@@ -171,7 +171,6 @@
     width: auto;
     padding: 6px 12px;
     background-color: #ff4444;
-    margin: 0;
   }
   
   .delete-btn:hover {
@@ -187,4 +186,18 @@
   flex-direction: column;
   gap: 10px;
 }
+
+  button {
+    width: auto;
+    padding: 8px 16px;
+    margin-left: 20px;
+    background-color: #007bff;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+  }
+
+  .checkbox {
+    margin-left: 20px;
+  }
   </style>
