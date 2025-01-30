@@ -13,6 +13,8 @@ RUN npm install
 
 COPY --chown=node:node src/ ./src/
 
+RUN mkdir -p /app/uploads
+
 EXPOSE 8080
 
 CMD [ "npm", "start" ]
