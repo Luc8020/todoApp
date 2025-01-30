@@ -1,6 +1,7 @@
 
 import { UUIDTypes } from 'uuid';
 import todoService from '../service/todoService';
+import path from 'path';
 import { Request, Response } from 'express';
 
 declare global {
@@ -37,6 +38,19 @@ const todoController = {
             });
             
             res.status(201).json({ todo });
+        } catch (error) {
+            res.status(400).json({ error });
+        }
+    },
+
+    downloadFiles: async (req: Request, res: Response) => {
+        const { id } = req.params;
+        try {
+            const todo = await todoService.getTodoById(id);
+            if (!todo) {
+                return res.status(404).json({ error: 'Todo not found' });
+            }
+            res.download(`${todo.filepaths[0]}`);
         } catch (error) {
             res.status(400).json({ error });
         }

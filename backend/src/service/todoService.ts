@@ -8,6 +8,10 @@ const todoService = {
         return await Todo.findAll({ where: { ownerId } });
     },
 
+    getTodoById: async (id: UUIDTypes) => {
+        return await Todo.findByPk(id as Identifier);
+    },
+
     createTodo: async (todo: Omit<TodoInterface, 'id'>) => {
         return await Todo.create(todo);
     },
