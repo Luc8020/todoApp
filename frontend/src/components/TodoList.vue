@@ -150,6 +150,12 @@
     border-radius: 8px;
     border: 1px solid #eee;
   }
+
+  .todo-section {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
   
   .todo-content h3 {
     margin: 0 0 5px 0;
@@ -157,7 +163,6 @@
   }
   
   .todo-content p {
-    margin: 0;
     color: #666;
     font-size: 14px;
   }
@@ -176,4 +181,10 @@
   #todoForm {
     margin-bottom: 20px;
   }
+
+  form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
   </style>
