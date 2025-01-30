@@ -36,8 +36,15 @@ const Todo = sequelize.define<TodoInstance>('Todo', {
     },
 
     filepaths: {
-        type: DataTypes.ARRAY(DataTypes.STRING),
-        allowNull: true
+        type: DataTypes.TEXT,
+        allowNull: true,
+        get() {
+            const rawValue = this.getDataValue('filepaths');
+            return rawValue ? JSON.parse(rawValue) : [];
+        },
+        set(value: string[]) {
+            this.setDataValue('filepaths', JSON.stringify(value));
+        }
     }
 });
 

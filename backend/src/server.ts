@@ -15,7 +15,7 @@ sequelize.authenticate()
     process.exit(1);
   });
 
-sequelize.sync({ force: false, alter: false })
+sequelize.sync({ force: false, alter: true })
   .then(() => {
     console.log('Database synchronized successfully!');
     app.listen(PORT, () => console.log(`Server is running on ${PORT}`));
