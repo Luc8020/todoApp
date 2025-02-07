@@ -56,6 +56,19 @@ const todoController = {
         }
     },
 
+    showImage: async (req: Request, res: Response) => {
+        const { id } = req.params;
+        try {
+            const todo = await todoService.getTodoById(id);
+            if (!todo) {
+                return res.status(404).json({ error: 'Todo not found' });
+            }
+            res.sendFile(path.resolve(todo.filepaths[0]));
+        } catch (error) {
+            res.status(400).json({ error });
+        }
+    },
+
     getTodos: async (req: Request, res: Response) => {
         try {
             if (!req.user?.id) {

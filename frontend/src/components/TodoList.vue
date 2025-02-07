@@ -86,7 +86,7 @@
         }
       })
   
-      if (!response.ok) throw new Error('Failed to download files')
+      if (!response.ok) throw new Error('No Files avalible')
       const blob = await response.blob()
       const url = window.URL.createObjectURL(blob)
       const a = document.createElement('a')

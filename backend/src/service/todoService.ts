@@ -1,6 +1,7 @@
 import { Identifier } from "sequelize";
 import { TodoInterface } from "../interfaces/todoInterface";
 import Todo from "../models/todo";
+import Fs from 'node:fs/promises'
 import { UUIDTypes } from "uuid";
 
 const todoService = {
@@ -28,6 +29,12 @@ const todoService = {
 
     deleteTodo: async (id: UUIDTypes) => {
         const todo = await Todo.findByPk(id as Identifier);
+        if (!todo) {
+            throw new Error('Todo not found');
+        }
+        for(var i = 0; i < todo.filepaths.length; i++){
+            await Fs.unlink(todo.filepaths[i]);
+        }
         if (!todo) {
             throw new Error('Todo not found');
         }
